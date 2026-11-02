@@ -17,14 +17,16 @@ export const issueSession = user => {
 export const setSession = (res, token) => res.cookie('foodresq_session', token, {
   httpOnly: true,
   secure: isProduction || process.env.COOKIE_SECURE === 'true',
-  sameSite: 'lax',
+  // sameSite: 'lax',
+  sameSite: isProduction ? 'none' : 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000,
   path: '/',
 })
 
 export const clearSession = res => res.clearCookie('foodresq_session', {
   httpOnly: true,
-  sameSite: 'lax',
+  // sameSite: 'lax',
+  sameSite: isProduction ? 'none' : 'lax',
   secure: isProduction || process.env.COOKIE_SECURE === 'true',
   path: '/',
 })
@@ -47,11 +49,23 @@ export const allow = (...roles) => (req, res, next) => isSupportedRole(req.user?
   ? next()
   : res.status(403).json({ error: 'You do not have permission to do that.' })
 
+// export const requireSameOrigin = (req, res, next) => {
+//   const origin = req.get('origin')
+//   const fetchSite = req.get('sec-fetch-site')
+//   if ((origin && origin !== CLIENT_ORIGIN) || fetchSite === 'cross-site') {
+//     return res.status(403).json({ error: 'This request did not come from the FoodResQ application.' })
+//   }
+//   next()
+// }
+
 export const requireSameOrigin = (req, res, next) => {
   const origin = req.get('origin')
-  const fetchSite = req.get('sec-fetch-site')
-  if ((origin && origin !== CLIENT_ORIGIN) || fetchSite === 'cross-site') {
-    return res.status(403).json({ error: 'This request did not come from the FoodResQ application.' })
+
+  if (!origin || origin !== CLIENT_ORIGIN) {
+    return res.status(403).json({
+      error: 'This request did not come from the FoodResQ application.'
+    })
   }
+
   next()
 }
