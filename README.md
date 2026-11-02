@@ -283,6 +283,12 @@ Passwords are stored as bcrypt hashes. API sessions use signed HTTP-only cookies
 
 This repository contains local development and production-build commands but no deployment target or deployment configuration. Deployment status is unverified. Before a production launch, configure MongoDB access, secrets, HTTPS and the allowed client origin; configure an external delivery channel if pickup codes must be sent securely. The README's local setup is not a deployment procedure.
 
+## Frontend API configuration
+
+The Vite client reads `VITE_API_URL` and appends the `/api` prefix when it is not included. `client/.env` points to the deployed API, while `client/.env.development` keeps local development pointed at `http://localhost:4000`; both environment files are ignored by Git. Copy `client/.env.example` when configuring another environment.
+
+After deploying the frontend, set the backend's `CLIENT_ORIGIN` environment variable to the exact frontend origin, including `https://` and without a path or trailing slash. Express uses this value for credentialed CORS, and state-changing cookie requests must match it. The API session is an HTTP-only cookie; production sets `Secure` and `SameSite=Lax`. If the frontend is deployed on a different site from the API, update `sameSite` in both the session set and clear options in `server/src/middleware/auth.js` to `none`, and keep `Secure` enabled.
+
 ## Contribution guidelines
 
 Keep the existing JavaScript React/Vite client and JavaScript Express/Mongoose server architecture. Update this README in the same change whenever documented behavior, roles, permissions, setup, routes, or project status changes. Before submitting code changes, run `npm test` and `npm run build` when possible, and never commit real environment secrets.
